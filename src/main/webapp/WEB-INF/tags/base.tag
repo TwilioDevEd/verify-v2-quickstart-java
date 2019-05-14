@@ -4,14 +4,16 @@
 <%@attribute name="title" fragment="true" %>
 <%@attribute name="header" fragment="true" %>
 <!DOCTYPE html>
-<title>
-    <jsp:invoke fragment="title"/> - Twilio Verify
-</title>
+<html>
 <head>
+    <title>
+        <jsp:invoke fragment="title"/> - Twilio Verify
+    </title>
     <meta content="width=device-width, initial-scale=1" name="viewport" />
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css"/>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/intlTelInput.css"/>
 </head>
+<body>
 <nav>
     <h1>Twilio Verify</h1>
     <ul>
@@ -43,3 +45,5 @@
         <jsp:doBody/>
     </div>
 </section>
+</body>
+</html>
