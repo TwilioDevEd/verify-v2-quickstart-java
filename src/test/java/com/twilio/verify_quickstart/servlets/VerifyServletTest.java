@@ -1,10 +1,9 @@
 package com.twilio.verify_quickstart.servlets;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.twilio.rest.verify.v2.service.VerificationCheck;
 import com.twilio.verify_quickstart.models.User;
-import com.twilio.verify_quickstart.models.UserService;
-import com.twilio.verify_quickstart.services.PhoneVerification;
+import com.twilio.verify_quickstart.services.UserService;
+import com.twilio.verify_quickstart.services.VerificationResult;
+import com.twilio.verify_quickstart.services.VerificationService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -36,7 +35,7 @@ public class VerifyServletTest {
     private UserService userService;
 
     @Mock
-    private PhoneVerification verificationService;
+    private VerificationService verificationService;
 
     private VerifyServlet verifyServlet;
 
@@ -47,30 +46,24 @@ public class VerifyServletTest {
     }
 
     @Test
-    public void testDoPostWithInvalidPhoneNumber() throws Exception {
-
+    public void testDoGetReturnsVerifyView() throws Exception {
         when(request.getSession()).thenReturn(session);
-        when(session.getAttribute("phone")).thenReturn("12345678");
-        when(request.getParameter("code")).thenReturn("123456");
-        when(userService.findByPhone(anyString())).thenReturn(null);
         when(request.getRequestDispatcher(anyString())).thenReturn(requestDispatcher);
 
-        verifyServlet.doPost(request, response);
+        verifyServlet.doGet(request, response);
 
-        verify(verificationService, never()).checkVerification(anyString(), anyString());
-        verify(userService, never()).update(any(User.class));
-        verify(response).sendRedirect("/login");
+        verify(request).getRequestDispatcher("/verify.jsp");
     }
 
     @Test
-    public void testDoPostWithValidPhoneNumberAndInvalidCode() throws Exception {
-        User user = new User("john", "12345678", "pass", false);
+    public void testDoPostWithInvalidCodeReturnVerifyView() throws Exception {
+        User user = new User("john", "pass", "12345678", false);
+        VerificationResult result = new VerificationResult(new String[]{"Invalid code"});
 
         when(request.getSession()).thenReturn(session);
-        when(session.getAttribute("phone")).thenReturn("12345678");
+        when(session.getAttribute("user")).thenReturn(user);
         when(request.getParameter("code")).thenReturn("123456");
-        when(userService.findByPhone(anyString())).thenReturn(user);
-        when(verificationService.checkVerification(anyString(), anyString())).thenReturn(null);
+        when(verificationService.checkVerification(anyString(), anyString())).thenReturn(result);
         when(request.getRequestDispatcher(anyString())).thenReturn(requestDispatcher);
 
         verifyServlet.doPost(request, response);
@@ -84,26 +77,12 @@ public class VerifyServletTest {
     @Test
     public void testDoPostWithValidPhoneNumberAndValidCode() throws Exception {
         User user = new User("john", "12345678", "pass", false);
-        VerificationCheck verificationCheck = VerificationCheck.fromJson(
-                "{" +
-                "  \"sid\": \"VEXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\"," +
-                "  \"service_sid\": \"VAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\"," +
-                "  \"account_sid\": \"ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\"," +
-                "  \"to\": \"+12345678\"," +
-                "  \"channel\": \"sms\"," +
-                "  \"status\": \"approved\"," +
-                "  \"valid\": true," +
-                "  \"amount\": null," +
-                "  \"payee\": null," +
-                "  \"date_created\": \"2015-07-30T20:00:00Z\"," +
-                "  \"date_updated\": \"2015-07-30T20:00:00Z\"" +
-                "}", new ObjectMapper());
+        VerificationResult result = new VerificationResult("id");
 
         when(request.getSession()).thenReturn(session);
-        when(session.getAttribute("phone")).thenReturn("12345678");
+        when(session.getAttribute("user")).thenReturn(user);
         when(request.getParameter("code")).thenReturn("123456");
-        when(userService.findByPhone(anyString())).thenReturn(user);
-        when(verificationService.checkVerification(anyString(), anyString())).thenReturn(verificationCheck);
+        when(verificationService.checkVerification(anyString(), anyString())).thenReturn(result);
 
         verifyServlet.doPost(request, response);
 

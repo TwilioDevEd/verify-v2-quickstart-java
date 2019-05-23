@@ -1,11 +1,10 @@
 package com.twilio.verify_quickstart.servlets;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.twilio.exception.ApiException;
-import com.twilio.rest.verify.v2.service.Verification;
 import com.twilio.verify_quickstart.models.User;
-import com.twilio.verify_quickstart.models.UserService;
-import com.twilio.verify_quickstart.services.PhoneVerification;
+import com.twilio.verify_quickstart.services.AuthService;
+import com.twilio.verify_quickstart.services.UserService;
+import com.twilio.verify_quickstart.services.TwilioVerification;
+import com.twilio.verify_quickstart.services.VerificationResult;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -32,7 +31,10 @@ public class RegisterServletTest {
     private UserService userService;
 
     @Mock
-    private PhoneVerification verificationService;
+    private AuthService authService;
+
+    @Mock
+    private TwilioVerification verificationService;
 
     private RegisterServlet registerServlet;
 
@@ -49,7 +51,7 @@ public class RegisterServletTest {
         when(request.getSession()).thenReturn(session);
         when(request.getRequestDispatcher(anyString())).thenReturn(dispatcher);
 
-        registerServlet = new RegisterServlet(userService, verificationService);
+        registerServlet = new RegisterServlet(userService, authService, verificationService);
     }
 
     @Test
@@ -66,8 +68,10 @@ public class RegisterServletTest {
     @Test
     public void testDoPostUserCreatedAndValidationRequestFails() throws Exception {
         User user = new User("john", "123456789", "pass", false);
+        VerificationResult result = new VerificationResult(new String[]{"Failed"});
+
         when(userService.create(any(User.class))).thenReturn(user);
-        when(verificationService.startVerification(anyString(), anyString())).thenThrow(new ApiException("Error"));
+        when(verificationService.startVerification(anyString(), anyString())).thenReturn(result);
 
         registerServlet.doPost(request, response);
 
@@ -79,33 +83,10 @@ public class RegisterServletTest {
     @Test
     public void testDoPostUserCreatedAndValidationRequestSucceed() throws Exception {
         User user = new User("john", "123456789", "pass", false);
-        Verification verification = Verification.fromJson(
-                "{" +
-                "  \"sid\": \"VEXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\"," +
-                "  \"service_sid\": \"VAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\"," +
-                "  \"account_sid\": \"ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\"," +
-                "  \"to\": \"+14159373912\"," +
-                "  \"channel\": \"sms\"," +
-                "  \"status\": \"pending\"," +
-                "  \"valid\": null," +
-                "  \"date_created\": \"2015-07-30T20:00:00Z\"," +
-                "  \"date_updated\": \"2015-07-30T20:00:00Z\"," +
-                "  \"lookup\": {" +
-                "    \"carrier\": {" +
-                "      \"error_code\": null," +
-                "      \"name\": \"Carrier Name\"," +
-                "      \"mobile_country_code\": \"310\"," +
-                "      \"mobile_network_code\": \"150\"," +
-                "      \"type\": \"mobile\"" +
-                "    }" +
-                "  }," +
-                "  \"amount\": null," +
-                "  \"payee\": null," +
-                "  \"url\": \"https://verify.twilio.com/v2/Services/VAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/Verifications/VEXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\"" +
-                "}", new ObjectMapper());
+        VerificationResult result = new VerificationResult("id");
 
         when(userService.create(any(User.class))).thenReturn(user);
-        when(verificationService.startVerification(anyString(), anyString())).thenReturn(verification);
+        when(verificationService.startVerification(anyString(), anyString())).thenReturn(result);
 
         registerServlet.doPost(request, response);
 
