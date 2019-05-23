@@ -1,5 +1,6 @@
 package com.twilio.verify_quickstart.models;
 
+import com.twilio.verify_quickstart.services.UserService;
 import org.junit.Before;
 import org.junit.Test;
 

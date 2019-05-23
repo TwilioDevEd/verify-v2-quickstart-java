@@ -1,6 +1,6 @@
 package com.twilio.verify_quickstart.servlets;
 
-import com.twilio.verify_quickstart.models.UserService;
+import com.twilio.verify_quickstart.services.UserService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

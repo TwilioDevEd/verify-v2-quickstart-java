@@ -1,9 +1,7 @@
 package com.twilio.verify_quickstart.servlets;
 
-import com.twilio.exception.ApiException;
 import com.twilio.verify_quickstart.models.User;
-import com.twilio.verify_quickstart.models.UserService;
-import com.twilio.verify_quickstart.services.PhoneVerification;
+import com.twilio.verify_quickstart.services.*;
 import org.mindrot.jbcrypt.BCrypt;
 
 import javax.persistence.RollbackException;
@@ -12,7 +10,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 @WebServlet("/register")
@@ -20,21 +17,24 @@ public class RegisterServlet extends HttpServlet {
 
     private UserService userService;
 
-    private PhoneVerification verificationService;
+    private AuthService authService;
+
+    private VerificationService verificationService;
 
     @SuppressWarnings("unused")
     public RegisterServlet() {
-        this(new UserService(), new PhoneVerification());
+        this(new UserService(), new AuthService(), new TwilioVerification());
     }
 
-    public RegisterServlet(UserService userService, PhoneVerification verificationService) {
+    public RegisterServlet(UserService userService, AuthService authService,
+                           VerificationService verificationService) {
         this.userService = userService;
+        this.authService = authService;
         this.verificationService = verificationService;
     }
 
     protected void doPost(HttpServletRequest request,
                           HttpServletResponse response) throws ServletException, IOException {
-
 
         String phone = request.getParameter("full_phone");
         String username = request.getParameter("username");
@@ -54,22 +54,21 @@ public class RegisterServlet extends HttpServlet {
             return;
         }
 
-        HttpSession session = request.getSession();
-        session.setAttribute("phone", phone);
+        authService.login(request.getSession(), user);
 
-        try {
-            verificationService.startVerification(phone, channel);
+        VerificationResult result = verificationService.startVerification(phone, channel);
+        if(result.isValid()) {
             response.sendRedirect("/verify");
-        } catch (ApiException e) {
+        } else {
             userService.delete(user);
-            request.setAttribute("message", e.getMessage());
+            request.setAttribute("message", String.join("\n", result.getErrors()));
             request.getRequestDispatcher("/register.jsp").forward(request, response);
         }
-
     }
 
     protected void doGet(HttpServletRequest request,
                           HttpServletResponse response) throws ServletException, IOException {
+        request.setAttribute("message", FlashMessageHandler.getMessage(request));
         request.getRequestDispatcher("/register.jsp").forward(request, response);
     }
 }

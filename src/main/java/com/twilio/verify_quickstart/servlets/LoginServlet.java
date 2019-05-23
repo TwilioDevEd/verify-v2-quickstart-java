@@ -1,16 +1,15 @@
 package com.twilio.verify_quickstart.servlets;
 
 import com.twilio.verify_quickstart.models.User;
-import com.twilio.verify_quickstart.models.UserService;
+import com.twilio.verify_quickstart.services.AuthService;
+import com.twilio.verify_quickstart.services.UserService;
 import org.mindrot.jbcrypt.BCrypt;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
@@ -19,7 +18,17 @@ import java.io.IOException;
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
 
-    UserService userService = new UserService();
+    private UserService userService;
+    private AuthService authService;
+
+    public LoginServlet() {
+        this(new UserService(), new AuthService());
+    }
+
+    public LoginServlet(UserService userService, AuthService authService) {
+        this.userService = userService;
+        this.authService = authService;
+    }
 
     protected void doPost(HttpServletRequest request,
                           HttpServletResponse response) throws ServletException, IOException {
@@ -31,17 +40,7 @@ public class LoginServlet extends HttpServlet {
         User user = userService.findByUsername(username);
 
         if (user != null && BCrypt.checkpw(password, user.getPassword())) {
-            //get the old session and invalidate
-            HttpSession oldSession = request.getSession(false);
-            if (oldSession != null) {
-                oldSession.invalidate();
-            }
-
-            HttpSession newSession = request.getSession(true);
-            newSession.setMaxInactiveInterval(1200);
-            newSession.setAttribute("user", user);
-            newSession.setAttribute("phone", user.getPhoneNumber());
-
+            authService.login(request.getSession(), user);
             response.sendRedirect("/");
         } else {
             request.setAttribute("message", "Login failed: invalid credentials");

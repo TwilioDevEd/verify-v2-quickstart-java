@@ -1,4 +1,6 @@
-package com.twilio.verify_quickstart.models;
+package com.twilio.verify_quickstart.services;
+
+import com.twilio.verify_quickstart.models.User;
 
 import javax.persistence.*;
 import java.util.List;
