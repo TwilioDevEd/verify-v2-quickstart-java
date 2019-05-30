@@ -27,7 +27,7 @@ public class TwilioVerification implements VerificationService {
     public VerificationResult checkVerification(String phone, String code) {
         try {
             VerificationCheck verification = VerificationCheck.creator(VERIFICATION_SID, code).setTo(phone).create();
-            if(verification.getValid()) {
+            if("approved".equals(verification.getStatus())) {
                 return new VerificationResult(verification.getSid());
             }
             return new VerificationResult(new String[]{"Invalid code."});
