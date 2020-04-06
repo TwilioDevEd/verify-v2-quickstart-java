@@ -42,7 +42,7 @@ public class VerifyServlet extends HttpServlet {
             userService.update(user);
             response.sendRedirect("/");
         } else {
-            request.setAttribute("message",result.getErrors());
+            request.setAttribute("message",result.getErrors().toString());
             request.getRequestDispatcher("/verify.jsp").forward(request, response);
         }
     }

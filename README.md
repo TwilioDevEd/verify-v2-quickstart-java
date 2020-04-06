@@ -1,5 +1,10 @@
+<a href="https://www.twilio.com">
+  <img src="https://static0.twilio.com/marketing/bundles/marketing/img/logos/wordmark-red.svg" alt="Twilio" width="250" />
+</a>
+
 > We are currently in the process of updating this sample template. If you are encountering any issues with the sample, please open an issue at [github.com/twilio-labs/code-exchange/issues](https://github.com/twilio-labs/code-exchange/issues) and we'll try to help you.
 
+![](https://github.com/TwilioDevEd/verify-v2-quickstart-java/workflows/Java/badge.svg)
 
 This application example demonstrates how to Simple phone verification with Java,
 Servlets, and Twilio Verify.
