@@ -6,3 +6,8 @@ target/*
 .env
 
 *.sqlite
+
+.classpath
+.project
+.settings
+bin
