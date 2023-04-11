@@ -1,4 +1,4 @@
-FROM maven:3-openjdk-11
+FROM maven:3.9.0-ibmjava-8
 
 WORKDIR /usr/app/
 
